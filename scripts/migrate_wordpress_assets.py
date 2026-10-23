@@ -30,7 +30,7 @@ for entry in entries:
         allowed = {"png": ("image/png",), "jpg": ("image/jpeg",), "jpeg": ("image/jpeg",), "webp": ("image/webp",), "pdf": ("application/pdf",), "docx": ("application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/zip")}
         if not any(mime.startswith(m) for m in allowed.get(suffix.lstrip("."), ())):
             raise ValueError("Unexpected MIME type: " + mime)
-        if suffix == ".png" and not payload.startswith(b"\\x89PNG\\r\\n\\x1a\\n"):
+        if suffix == ".png" and not payload.startswith(bytes.fromhex("89504e470d0a1a0a")):
             raise ValueError("Invalid PNG signature")
         if suffix == ".pdf" and not payload.startswith(b"%PDF"):
             raise ValueError("Invalid PDF signature")
@@ -55,5 +55,5 @@ if downloaded:
             new = new.replace(source, target)
         if new != html:
             html_path.write_text(new, encoding="utf-8")
-MANIFEST.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+MANIFEST.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + chr(10), encoding="utf-8")
 print("Migrated", len(downloaded), "of", len({e["source"] for e in entries}), "unique original assets")

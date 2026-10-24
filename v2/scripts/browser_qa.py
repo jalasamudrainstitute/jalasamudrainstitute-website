@@ -32,6 +32,14 @@ try:
                 assert page.locator('article.article-body').count()==1,(width,publication['slug'],'article body missing')
                 assert page.locator('article.article-body').inner_text().strip(),(width,publication['slug'],'empty article')
                 assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth+2'),(width,publication['slug'],'article horizontal overflow')
+                broken=page.locator('article.article-body img').evaluate_all('(images) => images.filter(i => i.complete && i.naturalWidth === 0).map(i => i.src)')
+                assert not broken,(width,publication['slug'],'broken article images',broken)
+                missing_links=page.locator('article.article-body a[href^="/"]').evaluate_all('(links) => links.filter(a => !a.getAttribute("href").startsWith("//")).map(a => a.getAttribute("href"))')
+                for href in missing_links:
+                    from urllib.parse import urlsplit
+                    relative=urlsplit(href).path.lstrip('/')
+                    target=ROOT/relative
+                    assert target.is_file() or (target/'index.html').is_file(),(publication['slug'],'broken local article link',href)
                 if width in (390,1440):
                     page.screenshot(path=str(SCREENSHOTS/f"article-{publication['slug'][:36]}-{width}.png"),full_page=True)
             page.goto(base+'/publications/',wait_until='networkidle')

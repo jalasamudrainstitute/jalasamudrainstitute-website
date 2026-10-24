@@ -26,7 +26,8 @@
 - [x] Generate and validate a one-to-one source URL mapping for the ten original WordPress articles (`data/source-url-map.json` in built preview)
 - [ ] Decide and implement historical redirects only when the final production domain and WordPress retirement plan are confirmed
 - [x] Add original-body-derived descriptions to migrated article metadata
-- [ ] Review SEO, sitemap, RSS, metadata and structured data (preview remains intentionally noindex)
+- [x] Generate and XML-validate preview sitemap and RSS feed; Cloudflare build succeeded
+- [ ] Audit production SEO metadata, canonical URLs, structured data, sitemap/RSS hostnames and indexing at launch (preview remains intentionally noindex)
 - [ ] Approve editorial taxonomy and authorship policy
 - [ ] Remove prototype noindex only when launch-ready
 

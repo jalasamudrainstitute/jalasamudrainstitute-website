@@ -3,6 +3,7 @@
 from html.parser import HTMLParser
 from pathlib import Path
 import json
+import html
 import sys
 from urllib.parse import unquote, urlsplit
 
@@ -65,9 +66,21 @@ for p in publications:
     article=ROOT/'articles'/slug/'index.html'
     if article.is_file():
         content=article.read_text(encoding='utf-8')
-        if '<h1>'+__import__('html').escape(p['title'])+'</h1>' not in content: errors.append(f'{slug}: article heading mismatch')
+        if '<h1>'+html.escape(p['title'])+'</h1>' not in content: errors.append(f'{slug}: article heading mismatch')
         if '<time datetime="'+p.get('published','')+'">' not in content: errors.append(f'{slug}: article date mismatch')
         if 'Lihat publikasi asli di WordPress' not in content: errors.append(f'{slug}: missing original publication link')
+# Check one-to-one historical WordPress source mapping before any future redirects.
+map_file=ROOT/'data/source-url-map.json'
+if not map_file.is_file():
+    errors.append('missing source URL map')
+else:
+    mapping=json.loads(map_file.read_text(encoding='utf-8')).get('mappings',[])
+    old_urls=[m['original_wordpress_url'] for m in mapping]
+    mapped_paths=[m['v2_path'] for m in mapping]
+    if len(mapping)!=len(publications): errors.append('source URL map count mismatch')
+    if len(set(old_urls))!=len(old_urls): errors.append('duplicate WordPress source URLs')
+    if sorted(mapped_paths)!=sorted(p['url'] for p in publications): errors.append('source URL map differs from publication catalog')
+    if any(not u.startswith('https://jalasamudrainstitute.wordpress.com/') for u in old_urls): errors.append('unexpected historical URL origin')
 urls=[p['url'] for p in publications]
 if len(urls)!=len(set(urls)): errors.append('duplicate publication URLs')
 for p in publications:

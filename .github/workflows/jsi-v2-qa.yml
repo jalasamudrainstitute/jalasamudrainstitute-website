@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Generate article pages
+        run: python3 v2/scripts/build.py
       - name: Validate site routes and publication records
         run: python3 v2/scripts/check_site.py
       - name: Check JavaScript syntax

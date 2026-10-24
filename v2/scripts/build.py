@@ -28,9 +28,11 @@ for p in records:
 for page_file in out.rglob('index.html'):
     page_html=page_file.read_text(encoding='utf-8')
     if '<main' not in page_html: continue
-    if 'id="main-content"' not in page_html:
-        page_html=re.sub(r'<main(\s|>)',r'<main id="main-content"\1',page_html,count=1)
-    skip_target='#main-content' if 'id="main-content"' in page_html else '#home'
+    main_tag=re.search(r'<main\b[^>]*>',page_html)
+    main_id=re.search(r'\bid="([^"]+)"',main_tag.group(0)) if main_tag else None
+    if not main_id:
+        page_html=page_html.replace('<main','<main id="main-content"',1)
+    skip_target='#'+(main_id.group(1) if main_id else 'main-content')
     page_html=page_html.replace('<body>','<body><a class="skip-link" href="'+skip_target+'">Langsung ke konten</a>',1)
     page_file.write_text(page_html,encoding='utf-8')
 

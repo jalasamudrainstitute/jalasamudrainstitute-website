@@ -30,3 +30,13 @@ Compared all WordPress WXR post-body paragraph sequences with GitHub legacy arti
 - **Embedded media:** none of the ten WXR post bodies contains an inline `<img>` tag. Nine contain YouTube links; the tenth has document attachments. Remote video embeds, thumbnails and document downloads require separate live checks.
 
 The release remains preview-only until the two discrepancies and live asset checks are resolved.
+
+## Media inventory and browser QA closure — 24 October 2026
+
+The WordPress XML contains **zero inline `<img>` elements in all ten posts**. Nine 2024 posts contain one WordPress YouTube embed figure each; the 2026 capital-market article has no inline figure/image. The video references remain in the migrated HTML, but **rendering of those embeds as playable video has not been confirmed**; the original WordPress markup contains plain YouTube URLs within embed wrappers.
+
+The 2026 article references four unique PDF/DOCX URLs: two external MSCI PDFs, one JSI-authored PDF, and one JSI-authored DOCX. The migrated HTML retains both MSCI PDF links and the DOCX link. The JSI-authored PDF was intentionally localized to `/assets/original/di-balik-layar-bursa-perdagangan-terkoordinasi-jejak-rekening-dan-ancaman-standalone-market-msci-terhadap-bursa-efek-indonesia_16_oktober_2026-1.pdf`; this file **exists in the repository**. HTTP download availability on deployed preview has not been independently verified.
+
+Latest complete CI result for commit `02bb1bd`: quality checks **success** (run `40095760111`), Chromium browser QA **success** (run `40095760157`). Browser QA now visits every migrated article at five widths and checks headings, nonempty article bodies, overflow, broken loaded images and relative internal links. This is automated testing, **not manual review of screenshots**.
+
+**Release position:** V2 is a functional, tested **private preview**, not a production launch. Remaining work requiring explicit approval is selecting the final production hostname, redirect/canonical strategy and switching indexability; external media/download availability and visual review should also be checked before launch. No production merge or domain cutover has occurred.

@@ -55,6 +55,29 @@ for page_file in out.rglob('index.html'):
         page_html=page_html.replace('</title>','</title><meta name="description" content="'+html.escape(plain[:155],quote=True)+'">',1)
     page_file.write_text(page_html,encoding='utf-8')
 
+# Generate a private-preview sitemap manifest and RSS feed for prelaunch validation.
+# These files are deliberately not advertised to crawlers while noindex is active.
+from xml.etree import ElementTree as ET
+site_origin='https://jsi-v2-review.pages.dev'
+urlset=ET.Element('urlset',xmlns='http://www.sitemaps.org/schemas/sitemap/0.9')
+for rel in ['/', '/publications/', '/research/', '/about/', '/contact/']+[p['url'] for p in records]:
+    node=ET.SubElement(urlset,'url')
+    ET.SubElement(node,'loc').text=site_origin+rel
+ET.ElementTree(urlset).write(out/'sitemap.xml',encoding='utf-8',xml_declaration=True)
+from email.utils import format_datetime
+from datetime import datetime, timezone
+rss=ET.Element('rss',version='2.0')
+channel=ET.SubElement(rss,'channel')
+for tag,value in [('title','Jala Samudra Institute — Publications'),('link',site_origin+'/publications/'),('description','Independent research, analysis and ideas.')]:
+    ET.SubElement(channel,tag).text=value
+for p in sorted(records,key=lambda x:x.get('published',''),reverse=True):
+    item=ET.SubElement(channel,'item')
+    for tag,value in [('title',p['title']),('link',site_origin+p['url']),('guid',site_origin+p['url'])]:
+        ET.SubElement(item,tag).text=value
+    try: ET.SubElement(item,'pubDate').text=format_datetime(datetime.fromisoformat(p['published']).replace(tzinfo=timezone.utc))
+    except (ValueError,KeyError): pass
+ET.ElementTree(rss).write(out/'feed.xml',encoding='utf-8',xml_declaration=True)
+
 # Private preview only: block indexing until editorial and deployment sign-off.
 (out/'robots.txt').write_text('User-agent: *\nDisallow: /\n',encoding='utf-8')
 print('Generated',len(records),'articles')

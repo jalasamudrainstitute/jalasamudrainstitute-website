@@ -17,12 +17,14 @@
 - [ ] Confirm search and filtered links in deployed environment
 - [x] Copy existing original media assets into the generated v2 site
 - [ ] Visually verify all migrated images against their WordPress originals
-- [ ] Verify article body parity, references, author, date and legal text
+- [x] Enforce generated HTML article-body parity with the migrated repository source, plus title/date checks at build time
+- [ ] Independently verify references, authorship, dates, images and legal text against the original WordPress publications
 - [x] Generate ten v2 article reading pages from legacy HTML without substantive editorial rewriting
-- [ ] Independently compare each generated article with its original publication
+- [ ] Independently compare all ten generated articles with the original WordPress publication (repository parity alone is insufficient)
 - [x] Automatically validate generated internal links and local assets
 - [ ] Manually verify external links and image responses in deployed preview
-- [ ] Define URL mapping and redirects before WordPress retirement
+- [x] Generate and validate a one-to-one source URL mapping for the ten original WordPress articles (`data/source-url-map.json` in built preview)
+- [ ] Decide and implement historical redirects only when the final production domain and WordPress retirement plan are confirmed
 - [x] Add original-body-derived descriptions to migrated article metadata
 - [ ] Review SEO, sitemap, RSS, metadata and structured data (preview remains intentionally noindex)
 - [ ] Approve editorial taxonomy and authorship policy

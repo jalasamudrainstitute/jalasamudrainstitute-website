@@ -5,13 +5,14 @@ from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from threading import Thread
 from playwright.sync_api import sync_playwright
+import os
 
 ROOT=Path(__file__).resolve().parents[2]/'v2-dist'
 SCREENSHOTS=Path('qa-screenshots')
 SCREENSHOTS.mkdir(exist_ok=True)
 server=ThreadingHTTPServer(('127.0.0.1',0),partial(SimpleHTTPRequestHandler,directory=str(ROOT)))
 Thread(target=server.serve_forever,daemon=True).start()
-base=f'http://127.0.0.1:{server.server_port}'
+base=os.environ.get('JSI_QA_BASE_URL',f'http://127.0.0.1:{server.server_port}').rstrip('/')
 try:
     with sync_playwright() as p:
         browser=p.chromium.launch(headless=True)

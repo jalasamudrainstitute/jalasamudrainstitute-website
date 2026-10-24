@@ -12,7 +12,8 @@
 ## Must be verified before production
 - [x] Configure separate Cloudflare preview with build command `python3 v2/scripts/build.py && python3 v2/scripts/check_site.py` and output `v2-dist`; Cloudflare build and deployment succeeded on 2026-10-24 at https://jsi-v2-review.pages.dev/
 - [x] Automated Chromium screenshots and horizontal-overflow checks at 360, 390, 768, 1024 and 1440px (GitHub Actions run 40094663166, success)
-- [ ] Human visual review of the captured screenshots (typography, layout, image fidelity)
+- [x] Review 25 captured screenshots across five core pages and five viewport widths for overall layout and horizontal overflow
+- [ ] Compare article images visually with their WordPress originals (not covered by core-page screenshots)
 - [x] Add keyboard skip navigation and verify in-page anchor targets in automated QA
 - [ ] Browser keyboard accessibility and contrast testing
 - [x] Browser QA of archive search, reset, topic filtering and empty state against the built site (run 40094663166)

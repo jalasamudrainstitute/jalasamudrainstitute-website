@@ -98,6 +98,22 @@ from xml.etree import ElementTree as ET
 for filename in ('sitemap.xml','feed.xml'):
     try: ET.parse(ROOT/filename)
     except (OSError, ET.ParseError): errors.append('invalid XML: '+filename)
+# Check that XML files actually cover the published preview routes.
+try:
+    sitemap_root=ET.parse(ROOT/'sitemap.xml').getroot()
+    locations=[node.text for node in sitemap_root.findall('.//{*}loc')]
+    expected_paths=['/','/publications/','/research/','/about/','/contact/']+[p['url'] for p in publications]
+    expected_locations=['https://jsi-v2-review.pages.dev'+p for p in expected_paths]
+    if len(locations)!=len(expected_locations) or set(locations)!=set(expected_locations):
+        errors.append('sitemap coverage does not match the 15 preview routes')
+    rss_root=ET.parse(ROOT/'feed.xml').getroot()
+    rss_items=rss_root.findall('./channel/item')
+    rss_links=[item.findtext('link') for item in rss_items]
+    expected_article_links=['https://jsi-v2-review.pages.dev'+p['url'] for p in publications]
+    if len(rss_links)!=len(expected_article_links) or set(rss_links)!=set(expected_article_links):
+        errors.append('RSS feed does not match publication catalog')
+except (OSError, ET.ParseError):
+    pass
 print(f'Checked {len(PAGES)} pages and {len(publications)} publication records.')
 if errors:
     print('\n'.join('FAIL: '+e for e in errors));sys.exit(1)

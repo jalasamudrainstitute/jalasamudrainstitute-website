@@ -26,6 +26,13 @@ for p in records:
     target=out/'articles'/p['slug']/'index.html'
     target.parent.mkdir(parents=True,exist_ok=True)
     target.write_text(page,encoding='utf-8')
+    # Verify that the migration wrapper preserves the complete legacy article body.
+    generated=target.read_text(encoding='utf-8')
+    rendered=re.search(r'<article class="article-body">(.*?)</article>',generated,re.S|re.I)
+    if not rendered or rendered.group(1)!=original_body:
+        raise ValueError('Article body parity failed for '+p['slug'])
+    if '<h1>'+title+'</h1>' not in generated or '<time datetime="'+html.escape(p.get('published',''))+'">' not in generated:
+        raise ValueError('Article metadata mismatch for '+p['slug'])
 
 # Consistent keyboard skip navigation across the complete static preview.
 for page_file in out.rglob('index.html'):

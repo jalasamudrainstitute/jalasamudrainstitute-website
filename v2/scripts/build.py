@@ -1,10 +1,10 @@
 from pathlib import Path
-import json,re,shutil,html
+import json,re,shutil,html,os
 root=Path(__file__).resolve().parents[2]
 src=root/'v2'
 out=root/'v2-dist'
 if out.exists(): shutil.rmtree(out)
-shutil.copytree(src,out,ignore=shutil.ignore_patterns('scripts','README.md','RELEASE-CHECKLIST.md'))
+shutil.copytree(src,out,ignore=shutil.ignore_patterns('scripts','README.md','RELEASE-CHECKLIST.md','WORDPRESS-PARITY-AUDIT.md'))
 legacy_assets=root/'assets'/'original'
 if legacy_assets.is_dir(): shutil.copytree(legacy_assets,out/'assets'/'original',dirs_exist_ok=True)
 records=json.loads((src/'data/publications.json').read_text())['publications']
@@ -80,7 +80,13 @@ for page_file in out.rglob('index.html'):
 # Generate a private-preview sitemap manifest and RSS feed for prelaunch validation.
 # These files are deliberately not advertised to crawlers while noindex is active.
 from xml.etree import ElementTree as ET
-site_origin='https://jsi-v2-review.pages.dev'
+production=os.environ.get('CF_PAGES_PROJECT_NAME')=='jalasamudrainstitute' or os.environ.get('JSI_PRODUCTION')=='1'
+site_origin='https://jalasamudrainstitute.pages.dev' if production else 'https://jsi-v2-review.pages.dev'
+if production:
+    for html_file in out.rglob('index.html'):
+        page_html=html_file.read_text(encoding='utf-8')
+        page_html=re.sub(r'<meta name="robots" content="noindex(?:,nofollow)?">','<meta name="robots" content="index,follow">',page_html)
+        html_file.write_text(page_html,encoding='utf-8')
 urlset=ET.Element('urlset',xmlns='http://www.sitemaps.org/schemas/sitemap/0.9')
 for rel in ['/', '/publications/', '/research/', '/about/', '/contact/']+[p['url'] for p in records]:
     node=ET.SubElement(urlset,'url')
@@ -101,5 +107,5 @@ for p in sorted(records,key=lambda x:x.get('published',''),reverse=True):
 ET.ElementTree(rss).write(out/'feed.xml',encoding='utf-8',xml_declaration=True)
 
 # Private preview only: block indexing until editorial and deployment sign-off.
-(out/'robots.txt').write_text('User-agent: *\nDisallow: /\n',encoding='utf-8')
+(out/'robots.txt').write_text(('User-agent: *\nAllow: /\nSitemap: '+site_origin+'/sitemap.xml\n') if production else 'User-agent: *\nDisallow: /\n',encoding='utf-8')
 print('Generated',len(records),'articles')

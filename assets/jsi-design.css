@@ -1,0 +1,10 @@
+/* Jala Samudra Institute — shared editorial design, v1 */
+:root{--jsi-maroon:#b32228;--jsi-ink:#292929;--jsi-border:#e5e5e5;--jsi-paper:#faf9f7}
+html{scroll-behavior:smooth}body{color:var(--jsi-ink)}a:focus-visible{outline:3px solid var(--jsi-maroon);outline-offset:3px}img{max-width:100%}
+.top,.site-header{background:#fff!important;color:var(--jsi-ink)!important;box-shadow:none!important;border-bottom:1px solid var(--jsi-border)!important}
+.top nav a,.site-nav a{color:var(--jsi-ink)!important;text-decoration:none}
+.top nav a:hover,.site-nav a:hover{color:var(--jsi-maroon)!important;text-decoration:underline}
+.top .brand strong,.site-brand strong{color:var(--jsi-maroon)!important}
+.story h3 a,main>h1,section h2{color:var(--jsi-maroon)}
+article img{height:auto}article table{max-width:100%;overflow-x:auto}article iframe{max-width:100%}
+@media(max-width:700px){.top nav,.site-nav{flex-wrap:wrap!important;white-space:normal!important;justify-content:center}.top nav a,.site-nav a{padding:4px 9px!important}.grid{grid-template-columns:minmax(0,1fr)!important}}

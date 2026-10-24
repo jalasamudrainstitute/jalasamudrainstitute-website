@@ -28,6 +28,8 @@ errors=[]
 for page in PAGES:
     parser=Parser(); parser.feed(page.read_text(encoding='utf-8'))
     if not parser.title: errors.append(f'{page}: missing title')
+    if '<html lang="id"' not in page.read_text(encoding='utf-8'): errors.append(f'{page}: missing Indonesian language declaration')
+    if 'name="viewport"' not in page.read_text(encoding='utf-8'): errors.append(f'{page}: missing mobile viewport')
     if page.is_relative_to(ROOT/'articles') and len(page.read_text(encoding='utf-8')) < 500: errors.append(f'{page}: article unexpectedly short')
     if not parser.robots: errors.append(f'{page}: prototype must remain noindex')
     if page.is_relative_to(ROOT/'articles') and '<article class="article-body">' not in page.read_text(encoding='utf-8'): errors.append(f'{page}: missing reading content')

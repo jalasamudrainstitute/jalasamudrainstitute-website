@@ -19,3 +19,10 @@ jobs:
         run: |
           node --check v2/assets/site.js
           node --check v2/assets/research.js
+
+      - name: Package reviewable site
+        uses: actions/upload-artifact@v4
+        with:
+          name: jsi-v2-site-preview
+          path: v2-dist/
+          retention-days: 14

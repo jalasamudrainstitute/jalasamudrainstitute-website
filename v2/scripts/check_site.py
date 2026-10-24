@@ -30,6 +30,7 @@ for page in PAGES:
     if not parser.title: errors.append(f'{page}: missing title')
     if page.is_relative_to(ROOT/'articles') and len(page.read_text(encoding='utf-8')) < 500: errors.append(f'{page}: article unexpectedly short')
     if not parser.robots: errors.append(f'{page}: prototype must remain noindex')
+    if page.is_relative_to(ROOT/'articles') and '<article class="article-body">' not in page.read_text(encoding='utf-8'): errors.append(f'{page}: missing reading content')
     for image in parser.images:
         if 'alt' not in image: errors.append(f'{page}: image missing alt attribute')
     for link in parser.links:

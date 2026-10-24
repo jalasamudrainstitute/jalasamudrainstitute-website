@@ -17,5 +17,4 @@ for p in records:
     target=out/'articles'/p['slug']/'index.html'
     target.parent.mkdir(parents=True,exist_ok=True)
     target.write_text(page)
-(out/'_redirects').write_text('/articles/* /articles/:splat 200\n')
 print('Generated',len(records),'articles')

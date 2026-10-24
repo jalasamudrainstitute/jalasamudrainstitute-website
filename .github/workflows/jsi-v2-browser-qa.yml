@@ -1,0 +1,38 @@
+name: JSI V2 browser QA
+on:
+  push:
+    branches: [rebuild/jsi-v2]
+  pull_request:
+    paths: ['v2/**', 'articles/**', 'assets/original/**']
+  workflow_dispatch:
+jobs:
+  browser-qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build and check
+        run: |
+          python3 v2/scripts/build.py
+          python3 v2/scripts/check_site.py
+      - name: Install browser test dependencies
+        run: |
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: Test responsive layouts and archive interaction
+        run: python3 v2/scripts/browser_qa.py
+      - name: Test deployed Cloudflare preview
+        env:
+          JSI_QA_BASE_URL: https://jsi-v2-review.pages.dev
+        run: python3 v2/scripts/browser_qa.py
+      - name: Audit legacy TikTok video redirects
+        run: python3 v2/scripts/audit_tiktok.py
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jsi-v2-browser-screenshots
+          path: qa-screenshots/
+          if-no-files-found: ignore

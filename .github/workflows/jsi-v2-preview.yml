@@ -1,0 +1,25 @@
+name: JSI v2 preview build
+on:
+  push:
+    branches: [rebuild/jsi-v2]
+    paths: ['v2/**', 'articles/**', '.github/workflows/jsi-v2-preview.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate website with full article archive
+        run: python3 v2/scripts/build.py
+      - name: Validate static routes
+        run: python3 v2/scripts/check_site.py
+      - name: Verify article count
+        run: python3 -c "from pathlib import Path; assert len(list(Path('v2-dist/articles').glob('*/index.html'))) == 10"
+      - name: Upload preview site
+        uses: actions/upload-artifact@v4
+        with:
+          name: jsi-v2-preview
+          path: v2-dist/
+          retention-days: 14

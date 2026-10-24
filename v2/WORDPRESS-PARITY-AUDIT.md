@@ -20,3 +20,13 @@ Source: `jalasamudrainstitute.WordPress.2026-10-23.xml` (WordPress export, 10 po
 5. Approve production domain, canonical URLs, sitemap/feed, redirects and indexability before merging or deploying production.
 
 Do not treat this report as production launch approval.
+
+## Additional paragraph-fingerprint comparison (24 October 2026)
+
+Compared all WordPress WXR post-body paragraph sequences with GitHub legacy article-body paragraph sequences, stripping markup and collapsing whitespace. **Eight of ten** matched exactly in paragraph count and 32-bit rolling text fingerprint: D4, Buddha/Vedas, Gradasi, Komeng, Diktator Dunia Maya, AUKUS, Anarki Internasional, and Balance of Power. This is stronger than the character-count screening above, but a rolling fingerprint is not a cryptographic identity proof.
+
+- **Bunuh Diri Kognitif:** 12 paragraphs on both sides, but different fingerprint and a two-character raw-body length difference; requires focused inspection.
+- **Di Balik Layar Bursa:** WordPress 185 paragraphs, legacy HTML 183. Original WordPress contains full PDF/DOCX attachment blocks; the legacy article substitutes concise download panels. Verify that the 183 prose paragraphs are unchanged, and that both files remain accessible.
+- **Embedded media:** none of the ten WXR post bodies contains an inline `<img>` tag. Nine contain YouTube links; the tenth has document attachments. Remote video embeds, thumbnails and document downloads require separate live checks.
+
+The release remains preview-only until the two discrepancies and live asset checks are resolved.

@@ -32,6 +32,7 @@ for page in PAGES:
     if 'name="viewport"' not in page.read_text(encoding='utf-8'): errors.append(f'{page}: missing mobile viewport')
     if page.is_relative_to(ROOT/'articles') and len(page.read_text(encoding='utf-8')) < 500: errors.append(f'{page}: article unexpectedly short')
     if not parser.robots: errors.append(f'{page}: prototype must remain noindex')
+    if not any(link.startswith('#') and link[1:] in parser.ids for link in parser.links): errors.append(f'{page}: missing functional in-page navigation')
     if page.is_relative_to(ROOT/'articles') and '<article class="article-body">' not in page.read_text(encoding='utf-8'): errors.append(f'{page}: missing reading content')
     for image in parser.images:
         if 'alt' not in image: errors.append(f'{page}: image missing alt attribute')

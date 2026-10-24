@@ -30,7 +30,8 @@ for page_file in out.rglob('index.html'):
     if '<main' not in page_html: continue
     if 'id="main-content"' not in page_html:
         page_html=re.sub(r'<main(\s|>)',r'<main id="main-content"\1',page_html,count=1)
-    page_html=page_html.replace('<body>','<body><a class="skip-link" href="#main-content">Langsung ke konten</a>',1)
+    skip_target='#main-content' if 'id="main-content"' in page_html else '#home'
+    page_html=page_html.replace('<body>','<body><a class="skip-link" href="'+skip_target+'">Langsung ke konten</a>',1)
     page_file.write_text(page_html,encoding='utf-8')
 
 # Private preview only: block indexing until editorial and deployment sign-off.

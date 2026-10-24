@@ -37,6 +37,9 @@ for page_file in out.rglob('index.html'):
         page_html=page_html.replace('<main','<main id="main-content"',1)
     skip_target='#'+(main_id.group(1) if main_id else 'main-content')
     page_html=page_html.replace('<body>','<body><a class="skip-link" href="'+skip_target+'">Langsung ke konten</a>',1)
+    if 'name="description"' not in page_html:
+        plain=' '.join(html.unescape(re.sub(r'<[^>]+>',' ',re.search(r'<main\b[^>]*>(.*?)</main>',page_html,re.S|re.I).group(1))).split()) if re.search(r'<main\b[^>]*>(.*?)</main>',page_html,re.S|re.I) else 'Jala Samudra Institute — independent research, analysis and ideas.'
+        page_html=page_html.replace('</title>','</title><meta name="description" content="'+html.escape(plain[:155],quote=True)+'">',1)
     page_file.write_text(page_html,encoding='utf-8')
 
 # Private preview only: block indexing until editorial and deployment sign-off.

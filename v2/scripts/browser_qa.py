@@ -23,6 +23,17 @@ try:
                 assert page.locator('h1').count()>=1,(width,route,'missing h1')
                 assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth+2'),(width,route,'horizontal overflow')
                 page.screenshot(path=str(SCREENSHOTS/f'{name}-{width}.png'),full_page=True)
+            # Inspect every migrated article, not just the five landing pages.
+            import json
+            catalog=json.loads((ROOT/'data'/'publications.json').read_text(encoding='utf-8'))['publications']
+            for publication in catalog:
+                page.goto(base+publication['url'],wait_until='networkidle')
+                assert page.locator('h1').inner_text()==publication['title'],(width,publication['slug'],'wrong article title')
+                assert page.locator('article.article-body').count()==1,(width,publication['slug'],'article body missing')
+                assert page.locator('article.article-body').inner_text().strip(),(width,publication['slug'],'empty article')
+                assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth+2'),(width,publication['slug'],'article horizontal overflow')
+                if width in (390,1440):
+                    page.screenshot(path=str(SCREENSHOTS/f"article-{publication['slug'][:36]}-{width}.png"),full_page=True)
             page.goto(base+'/publications/',wait_until='networkidle')
             assert page.locator('#stories article').count()==10,(width,'archive count')
             page.locator('#search').fill('no-match-zzzz')
@@ -36,4 +47,4 @@ try:
         browser.close()
 finally:
     server.shutdown()
-print('PASS: 5 responsive widths, 5 core pages, archive search and topic filtering.')
+print('PASS: 5 widths, 5 core pages, 10 article pages, archive search and filtering.')

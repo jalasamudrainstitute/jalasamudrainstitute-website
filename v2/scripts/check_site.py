@@ -50,6 +50,24 @@ for page in PAGES:
 publications=json.loads((ROOT/'data/publications.json').read_text(encoding='utf-8'))['publications']
 slugs=[p['slug'] for p in publications]
 if len(slugs)!=len(set(slugs)): errors.append('duplicate publication slugs')
+# Validate archive taxonomy, dates, article metadata and source traceability.
+from datetime import date
+catalog=json.loads((ROOT/'data/publications.json').read_text(encoding='utf-8'))
+known_domains=set(catalog.get('domains',[]))
+for p in publications:
+    slug=p.get('slug','')
+    if not p.get('title','').strip(): errors.append(f'{slug}: missing title')
+    if not p.get('domains'): errors.append(f'{slug}: missing research domain')
+    for domain in p.get('domains',[]):
+        if domain not in known_domains: errors.append(f'{slug}: unlisted domain {domain}')
+    try: date.fromisoformat(p.get('published',''))
+    except ValueError: errors.append(f'{slug}: invalid publication date')
+    article=ROOT/'articles'/slug/'index.html'
+    if article.is_file():
+        content=article.read_text(encoding='utf-8')
+        if '<h1>'+__import__('html').escape(p['title'])+'</h1>' not in content: errors.append(f'{slug}: article heading mismatch')
+        if '<time datetime="'+p.get('published','')+'">' not in content: errors.append(f'{slug}: article date mismatch')
+        if 'Lihat publikasi asli di WordPress' not in content: errors.append(f'{slug}: missing original publication link')
 urls=[p['url'] for p in publications]
 if len(urls)!=len(set(urls)): errors.append('duplicate publication URLs')
 for p in publications:

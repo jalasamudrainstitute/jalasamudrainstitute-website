@@ -15,6 +15,8 @@ jobs:
         run: python3 v2/scripts/build.py
       - name: Validate static routes
         run: python3 v2/scripts/check_site.py
+      - name: Verify article count
+        run: python3 -c "from pathlib import Path; assert len(list(Path('v2-dist/articles').glob('*/index.html'))) == 10"
       - name: Upload preview site
         uses: actions/upload-artifact@v4
         with:

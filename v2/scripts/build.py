@@ -20,14 +20,14 @@ for p in records:
     # Replace only the YouTube wrapper with a privacy-enhanced iframe; preserve all other content.
     def youtube_player(match):
         wrapper=match.group(0)
-        video=re.search(r'https?://(?:www\\.)?(?:youtu\\.be/|youtube\\.com/watch\\?v=)([A-Za-z0-9_-]{11})',wrapper)
+        video=re.search(r'https?://(?:www\.)?(?:youtu\.be/|youtube\.com/watch\?v=)([A-Za-z0-9_-]{11})',wrapper)
         if not video: return wrapper
         video_id=video.group(1)
         return ('<div class="video-embed"><iframe loading="lazy" '
                 'src="https://www.youtube-nocookie.com/embed/'+video_id+'" '
                 'title="Video publikasi JSI" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" '
                 'referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>')
-    original_body=re.sub(r'<figure\\b[^>]*class="[^"]*wp-block-embed[^"]*"[^>]*>[\\s\\S]*?</figure>',youtube_player,original_body,flags=re.I)
+    original_body=re.sub(r'<figure\b[^>]*class="[^"]*wp-block-embed[^"]*"[^>]*>[\s\S]*?</figure>',youtube_player,original_body,flags=re.I)
 
     original_body=original_body.replace('https://jalasamudrainstitute.pages.dev/assets/','/assets/')
     original_body=re.sub(r'<img(?![^>]*\bloading=)', '<img loading="lazy"', original_body, flags=re.I)

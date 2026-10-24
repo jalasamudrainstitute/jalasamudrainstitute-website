@@ -11,7 +11,9 @@ for p in records:
     body=re.search(r'<article[^>]*>(.*?)</article>',legacy,re.S|re.I)
     if not body: raise ValueError(p['slug'])
     title=html.escape(p['title'])
-    page='<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>'+title+' — JSI</title><link rel="stylesheet" href="../../assets/site.css"><link rel="stylesheet" href="../../assets/article.css"></head><body><header class="masthead"><a href="../../">Jala Samudra Institute</a></header><nav class="nav"><div class="wrap"><a href="../../">Home</a><a href="../../publications/">Publications</a><a href="../../research/">Research</a><a href="../../about/">About</a><a href="../../contact/">Contact</a></div></nav><main class="reading"><h1>'+title+'</h1><p>'+html.escape(p.get('published',''))+'</p><article class="article-body">'+body.group(1)+'</article><p><a href="../../publications/">Back to publications</a></p></main></body></html>'
+    original_body=body.group(1)
+    original_body=re.sub(r'(src|href)="/assets/',r'\\1="https://jalasamudrainstitute.pages.dev/assets/',original_body)
+    page='<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>'+title+' — JSI</title><link rel="stylesheet" href="../../assets/site.css"><link rel="stylesheet" href="../../assets/article.css"></head><body><header class="masthead"><a href="../../">Jala Samudra Institute</a></header><nav class="nav"><div class="wrap"><a href="../../">Home</a><a href="../../publications/">Publications</a><a href="../../research/">Research</a><a href="../../about/">About</a><a href="../../contact/">Contact</a></div></nav><main class="reading"><h1>'+title+'</h1><p>'+html.escape(p.get('published',''))+'</p><article class="article-body">'+original_body+'</article><p><a href="../../publications/">Back to publications</a></p></main></body></html>'
     target=out/'articles'/p['slug']/'index.html'
     target.parent.mkdir(parents=True,exist_ok=True)
     target.write_text(page)

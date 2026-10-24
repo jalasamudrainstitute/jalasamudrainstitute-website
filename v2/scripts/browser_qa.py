@@ -28,7 +28,7 @@ try:
             catalog=json.loads((ROOT/'data'/'publications.json').read_text(encoding='utf-8'))['publications']
             for publication in catalog:
                 page.goto(base+publication['url'],wait_until='networkidle')
-                assert page.locator('h1').inner_text()==publication['title'],(width,publication['slug'],'wrong article title')
+                assert ' '.join(page.locator('h1').inner_text().split())==' '.join(publication['title'].split()),(width,publication['slug'],'wrong article title')
                 assert page.locator('article.article-body').count()==1,(width,publication['slug'],'article body missing')
                 assert page.locator('article.article-body').inner_text().strip(),(width,publication['slug'],'empty article')
                 assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth+2'),(width,publication['slug'],'article horizontal overflow')

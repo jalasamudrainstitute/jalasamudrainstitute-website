@@ -2,9 +2,9 @@
 
 ## Confirmed in repository
 - [x] Isolated rebuild branch `rebuild/jsi-v2` and `v2/` folder
-- [x] Separate Home, Publications, Research Areas, About routes
+- [x] Separate Home, Publications, Research Areas, About and Contact routes
 - [x] Shared stylesheet and publication metadata
-- [x] Ten publication records with canonical links to existing site
+- [x] Ten publication records with dedicated v2 article routes; original WordPress remains online
 - [x] Search and topic filtering implementation
 - [x] No changes to published article bodies
 - [x] `noindex,nofollow` on prototype pages to prevent indexing of unfinished site
@@ -14,12 +14,15 @@
 - [ ] Visual QA at 360, 390, 768, 1024 and 1440px
 - [ ] Browser keyboard accessibility and contrast testing
 - [ ] Confirm search and filtered links in deployed environment
-- [ ] Validate complete media inventory and download originals to repository
+- [x] Copy existing original media assets into the generated v2 site
+- [ ] Visually verify all migrated images against their WordPress originals
 - [ ] Verify article body parity, references, author, date and legal text
-- [ ] Build v2 article reading template and import content without substantive edits
-- [ ] Check every internal/external link and image response
+- [x] Generate ten v2 article reading pages from legacy HTML without substantive editorial rewriting
+- [ ] Independently compare each generated article with its original publication
+- [x] Automatically validate generated internal links and local assets
+- [ ] Manually verify external links and image responses in deployed preview
 - [ ] Define URL mapping and redirects before WordPress retirement
-- [ ] Review SEO, sitemap, RSS, metadata and structured data
+- [ ] Review SEO, sitemap, RSS, metadata and structured data (preview remains intentionally noindex)
 - [ ] Approve editorial taxonomy and authorship policy
 - [ ] Remove prototype noindex only when launch-ready
 

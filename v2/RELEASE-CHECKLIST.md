@@ -7,11 +7,12 @@
 - [x] Ten publication records with dedicated v2 article routes; original WordPress remains online
 - [x] Search and topic filtering implementation
 - [x] No changes to published article bodies
-- [x] `noindex,nofollow` on prototype pages to prevent indexing of unfinished site
+- [x] `noindex` on prototype pages and disallow-all `robots.txt` to prevent indexing of unfinished site
 
 ## Must be verified before production
-- [ ] Configure separate Cloudflare preview/build output `v2`; verify real URLs
+- [ ] Configure separate Cloudflare preview with build command `python3 v2/scripts/build.py && python3 v2/scripts/check_site.py` and output `v2-dist`; verify real URLs
 - [ ] Visual QA at 360, 390, 768, 1024 and 1440px
+- [x] Add keyboard skip navigation and verify in-page anchor targets in automated QA
 - [ ] Browser keyboard accessibility and contrast testing
 - [ ] Confirm search and filtered links in deployed environment
 - [x] Copy existing original media assets into the generated v2 site
@@ -22,6 +23,7 @@
 - [x] Automatically validate generated internal links and local assets
 - [ ] Manually verify external links and image responses in deployed preview
 - [ ] Define URL mapping and redirects before WordPress retirement
+- [x] Add original-body-derived descriptions to migrated article metadata
 - [ ] Review SEO, sitemap, RSS, metadata and structured data (preview remains intentionally noindex)
 - [ ] Approve editorial taxonomy and authorship policy
 - [ ] Remove prototype noindex only when launch-ready

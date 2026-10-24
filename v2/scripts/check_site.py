@@ -5,6 +5,7 @@ from pathlib import Path
 import json
 import html
 import sys
+import os
 from urllib.parse import unquote, urlsplit
 
 ROOT = Path(__file__).resolve().parents[2] / 'v2-dist'
@@ -26,6 +27,8 @@ class Parser(HTMLParser):
         if tag=='svg' and a.get('role')=='img' and not (a.get('aria-label') or a.get('aria-labelledby')): self.images.append({'src':'inline SVG','alt':None})
         if tag=='meta' and a.get('name')=='robots' and 'noindex' in a.get('content',''): self.robots=True
 
+production=os.environ.get('CF_PAGES_PROJECT_NAME')=='jalasamudrainstitute' or os.environ.get('JSI_PRODUCTION')=='1'
+site_origin='https://jalasamudrainstitute.pages.dev' if production else 'https://jsi-v2-review.pages.dev'
 errors=[]
 for page in PAGES:
     parser=Parser(); parser.feed(page.read_text(encoding='utf-8'))
@@ -49,7 +52,8 @@ for page in PAGES:
     if '<html lang="id"' not in page.read_text(encoding='utf-8'): errors.append(f'{page}: missing Indonesian language declaration')
     if 'name="viewport"' not in page.read_text(encoding='utf-8'): errors.append(f'{page}: missing mobile viewport')
     if page.is_relative_to(ROOT/'articles') and len(page.read_text(encoding='utf-8')) < 500: errors.append(f'{page}: article unexpectedly short')
-    if not parser.robots: errors.append(f'{page}: prototype must remain noindex')
+    if production and parser.robots: errors.append(f'{page}: production page must be indexable')
+    if not production and not parser.robots: errors.append(f'{page}: preview page must remain noindex')
     if not any(link.startswith('#') and link[1:] in parser.ids for link in parser.links): errors.append(f'{page}: missing functional in-page navigation')
     if page.is_relative_to(ROOT/'articles') and '<article class="article-body">' not in page.read_text(encoding='utf-8'): errors.append(f'{page}: missing reading content')
     for image in parser.images:
@@ -103,7 +107,8 @@ if len(urls)!=len(set(urls)): errors.append('duplicate publication URLs')
 for p in publications:
     if not p['url'].startswith('/articles/'): errors.append(f"unexpected canonical article URL: {p['url']}")
     if not (ROOT / 'articles' / p['slug'] / 'index.html').is_file(): errors.append(f"missing generated article: {p['slug']}")
-if (ROOT/'robots.txt').read_text(encoding='utf-8')!='User-agent: *\nDisallow: /\n': errors.append('prototype robots.txt must block indexing')
+expected_robots=('User-agent: *\nAllow: /\nSitemap: '+site_origin+'/sitemap.xml\n') if production else 'User-agent: *\nDisallow: /\n'
+if (ROOT/'robots.txt').read_text(encoding='utf-8')!=expected_robots: errors.append('robots.txt does not match deployment environment')
 if len(PAGES)!=len(publications)+5: errors.append(f'expected {len(publications)+5} built pages; found {len(PAGES)}')
 from xml.etree import ElementTree as ET
 for filename in ('sitemap.xml','feed.xml'):
@@ -114,13 +119,13 @@ try:
     sitemap_root=ET.parse(ROOT/'sitemap.xml').getroot()
     locations=[node.text for node in sitemap_root.findall('.//{*}loc')]
     expected_paths=['/','/publications/','/research/','/about/','/contact/']+[p['url'] for p in publications]
-    expected_locations=['https://jsi-v2-review.pages.dev'+p for p in expected_paths]
+    expected_locations=[site_origin+p for p in expected_paths]
     if len(locations)!=len(expected_locations) or set(locations)!=set(expected_locations):
         errors.append('sitemap coverage does not match the 15 preview routes')
     rss_root=ET.parse(ROOT/'feed.xml').getroot()
     rss_items=rss_root.findall('./channel/item')
     rss_links=[item.findtext('link') for item in rss_items]
-    expected_article_links=['https://jsi-v2-review.pages.dev'+p['url'] for p in publications]
+    expected_article_links=[site_origin+p['url'] for p in publications]
     if len(rss_links)!=len(expected_article_links) or set(rss_links)!=set(expected_article_links):
         errors.append('RSS feed does not match publication catalog')
 except (OSError, ET.ParseError):

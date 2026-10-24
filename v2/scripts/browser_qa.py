@@ -32,6 +32,8 @@ try:
                 assert ' '.join(page.locator('h1').inner_text().split())==' '.join(publication['title'].split()),(width,publication['slug'],'wrong article title')
                 assert page.locator('article.article-body').count()==1,(width,publication['slug'],'article body missing')
                 assert page.locator('article.article-body').inner_text().strip(),(width,publication['slug'],'empty article')
+                if publication['published'].startswith('2024'):
+                    assert page.locator('article.article-body iframe[src^="https://www.youtube-nocookie.com/embed/"]').count()==1,(width,publication['slug'],'missing video player')
                 assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth+2'),(width,publication['slug'],'article horizontal overflow')
                 broken=page.locator('article.article-body img').evaluate_all('(images) => images.filter(i => i.complete && i.naturalWidth === 0).map(i => i.src)')
                 assert not broken,(width,publication['slug'],'broken article images',broken)

@@ -94,6 +94,10 @@ for p in publications:
     if not (ROOT / 'articles' / p['slug'] / 'index.html').is_file(): errors.append(f"missing generated article: {p['slug']}")
 if (ROOT/'robots.txt').read_text(encoding='utf-8')!='User-agent: *\nDisallow: /\n': errors.append('prototype robots.txt must block indexing')
 if len(PAGES)!=len(publications)+5: errors.append(f'expected {len(publications)+5} built pages; found {len(PAGES)}')
+from xml.etree import ElementTree as ET
+for filename in ('sitemap.xml','feed.xml'):
+    try: ET.parse(ROOT/filename)
+    except (OSError, ET.ParseError): errors.append('invalid XML: '+filename)
 print(f'Checked {len(PAGES)} pages and {len(publications)} publication records.')
 if errors:
     print('\n'.join('FAIL: '+e for e in errors));sys.exit(1)

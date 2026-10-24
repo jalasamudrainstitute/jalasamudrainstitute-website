@@ -10,7 +10,7 @@
 - [x] `noindex` on prototype pages and disallow-all `robots.txt` to prevent indexing of unfinished site
 
 ## Must be verified before production
-- [ ] Configure separate Cloudflare preview with build command `python3 v2/scripts/build.py && python3 v2/scripts/check_site.py` and output `v2-dist`; verify real URLs
+- [x] Configure separate Cloudflare preview with build command `python3 v2/scripts/build.py && python3 v2/scripts/check_site.py` and output `v2-dist`; Cloudflare build and deployment succeeded on 2026-10-24 at https://jsi-v2-review.pages.dev/
 - [ ] Visual QA at 360, 390, 768, 1024 and 1440px
 - [x] Add keyboard skip navigation and verify in-page anchor targets in automated QA
 - [ ] Browser keyboard accessibility and contrast testing

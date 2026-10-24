@@ -23,12 +23,18 @@ class Parser(HTMLParser):
             if a.get(k): self.links.append(a[k])
         if tag=='img': self.images.append(a)
         if tag=='title': self.title=True
+        if tag=='svg' and a.get('role')=='img' and not (a.get('aria-label') or a.get('aria-labelledby')): self.images.append({'src':'inline SVG','alt':None})
         if tag=='meta' and a.get('name')=='robots' and 'noindex' in a.get('content',''): self.robots=True
 
 errors=[]
 for page in PAGES:
     parser=Parser(); parser.feed(page.read_text(encoding='utf-8'))
     if not parser.title: errors.append(f'{page}: missing title')
+    page_text=page.read_text(encoding='utf-8')
+    if not page.is_relative_to(ROOT/'articles'):
+        if 'aria-label="Navigasi utama"' not in page_text: errors.append(f'{page}: main navigation lacks accessible label')
+        if '<h1' not in page_text: errors.append(f'{page}: missing primary heading')
+    if page_text.count('class="skip-link"')!=1: errors.append(f'{page}: expected one keyboard skip link')
     if '<html lang="id"' not in page.read_text(encoding='utf-8'): errors.append(f'{page}: missing Indonesian language declaration')
     if 'name="viewport"' not in page.read_text(encoding='utf-8'): errors.append(f'{page}: missing mobile viewport')
     if page.is_relative_to(ROOT/'articles') and len(page.read_text(encoding='utf-8')) < 500: errors.append(f'{page}: article unexpectedly short')

@@ -28,6 +28,7 @@ errors=[]
 for page in PAGES:
     parser=Parser(); parser.feed(page.read_text(encoding='utf-8'))
     if not parser.title: errors.append(f'{page}: missing title')
+    if page.is_relative_to(ROOT/'articles') and len(page.read_text(encoding='utf-8')) < 500: errors.append(f'{page}: article unexpectedly short')
     if not parser.robots: errors.append(f'{page}: prototype must remain noindex')
     for image in parser.images:
         if 'alt' not in image: errors.append(f'{page}: image missing alt attribute')
@@ -50,6 +51,7 @@ if len(urls)!=len(set(urls)): errors.append('duplicate publication URLs')
 for p in publications:
     if not p['url'].startswith('/articles/'): errors.append(f"unexpected canonical article URL: {p['url']}")
     if not (ROOT / 'articles' / p['slug'] / 'index.html').is_file(): errors.append(f"missing generated article: {p['slug']}")
+if len(PAGES)!=len(publications)+5: errors.append(f'expected {len(publications)+5} built pages; found {len(PAGES)}')
 print(f'Checked {len(PAGES)} pages and {len(publications)} publication records.')
 if errors:
     print('\n'.join('FAIL: '+e for e in errors));sys.exit(1)

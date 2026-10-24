@@ -37,7 +37,7 @@ for page in PAGES:
         if link.startswith('#'):
             if parsed.fragment and unquote(parsed.fragment) not in parser.ids: errors.append(f'{page}: unresolved anchor {link}')
             continue
-        target=(page.parent/unquote(parsed.path)).resolve() if parsed.path else page
+        target=((ROOT if parsed.path.startswith('/') else page.parent)/unquote(parsed.path).lstrip('/')).resolve() if parsed.path else page
         if ROOT not in target.parents and target!=ROOT: errors.append(f'{page}: link escapes v2 root: {link}'); continue
         if target.is_dir(): target=target/'index.html'
         if not target.is_file(): errors.append(f'{page}: missing local target {link}')

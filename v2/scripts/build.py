@@ -40,6 +40,15 @@ for p in records:
 # Preserve explicit historical URL mapping for launch planning; do not redirect WordPress yet.
 (out/'data'/'source-url-map.json').write_text(json.dumps({'mappings':source_map},ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
 
+# Render a usable archive in HTML before JavaScript enhances search and filters.
+archive_file=out/'publications'/'index.html'
+archive_html=archive_file.read_text(encoding='utf-8')
+static_cards=[]
+for p in sorted(records,key=lambda p:p.get('published',''),reverse=True):
+    static_cards.append('<article class="story"><h3><a href="'+html.escape(p['url'],quote=True)+'">'+html.escape(p['title'])+'</a></h3><p>'+html.escape(' · '.join(p.get('domains',[])))+'</p><time datetime="'+html.escape(p.get('published',''),quote=True)+'">'+html.escape(p.get('published',''))+'</time></article>')
+archive_html=archive_html.replace('<p>Memuat arsip publikasi…</p>',''.join(static_cards))
+archive_file.write_text(archive_html,encoding='utf-8')
+
 # Consistent keyboard skip navigation across the complete static preview.
 for page_file in out.rglob('index.html'):
     page_html=page_file.read_text(encoding='utf-8')

@@ -6,14 +6,14 @@ Source: `jalasamudrainstitute.WordPress.2026-10-23.xml` (WordPress export, 10 po
 
 - All 10 WordPress post titles and article slugs were identified and mapped to the 10 migrated source article pages.
 - The full original WordPress title of **Anarki Internasional, Persaingan Antar Negara, dan Limitasi Hukum Internasional:  Mengapa Negara Produsen (Kaya) tetap Kaya, dan Negara Konsumen (Miskin) tetap Miskin** was restored in the V2 catalog (commit `5afc08d`).
-- Comparing visible text extracted from WordPress `content:encoded` with the legacy article `<article>` body, nine 2024 articles matched by normalized character count, except *Bunuh Diri Kognitif Industri Maritim Indonesia*, which differed by two characters under the two independent extraction methods (HTML entity decoding). Equal length is a screening check, **not proof of full text identity**.
-- The 2026 *Di Balik Layar Bursa* article differs in normalized length (WordPress 48,530 characters; legacy article extraction 48,137 characters). Its legacy article starts with the substantive introductory paragraph, whereas the WordPress export contains additional header/layout material. It also includes adapted download blocks. A paragraph-by-paragraph comparison is still required.
+- A direct normalized **full-string equality comparison** of the WordPress export's `content:encoded` against the legacy article `<article>` body confirms **all nine 2024 articles match exactly**, including *Bunuh Diri Kognitif Industri Maritim Indonesia*. The earlier two-character discrepancy was caused by inconsistent HTML entity normalization, not changed editorial content. Comparison used the archived 33-file site-build artifact `github-actions-artifact-12553506817.zip` and the original WordPress XML.
+- The 2026 *Di Balik Layar Bursa* article differs in normalized length (WordPress 48,530 characters; legacy article 48,137 characters). The WordPress original has 185 characters of introductory category/title text before the substantive article; the remainder is 48,345 characters. A character-level diff of the remainder indicates the residual differences are concentrated in the final downloadable PDF/Word attachment blocks (link labels and filenames). **Editorial paragraphs appear preserved**, but the attachment URLs, file availability and figure/table fidelity still require independent verification.
 - Browser QA passed in GitHub Actions run `40094663166`: Chromium at 360, 390, 768, 1024 and 1440px; archive search, reset, topic filtering and empty state. 25 screenshots uploaded.
 - Production remains unchanged; preview is intentionally `noindex`.
 
 ## Remaining release blockers
 
-1. Paragraph-by-paragraph content comparison for all ten posts, particularly the October 2026 study; confirm no meaningful text, tables, footnotes, figures, or downloads are missing.
+1. Independently confirm attachment URLs, figures/tables and downloadable files in the October 2026 study. Full normalized text equality is confirmed for the other nine posts.
 2. Verify image/media availability and fidelity against original WordPress pages.
 3. Review publication authorship, date metadata and provisional taxonomy.
 4. Verify links and interactive behavior on deployed preview (as distinct from local Chromium build).

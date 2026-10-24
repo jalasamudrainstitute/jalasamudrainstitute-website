@@ -8,6 +8,7 @@ shutil.copytree(src,out,ignore=shutil.ignore_patterns('scripts','README.md','REL
 legacy_assets=root/'assets'/'original'
 if legacy_assets.is_dir(): shutil.copytree(legacy_assets,out/'assets'/'original',dirs_exist_ok=True)
 records=json.loads((src/'data/publications.json').read_text())['publications']
+source_map=[]
 for p in records:
     legacy=(root/'articles'/p['slug']/'index.html').read_text()
     body=re.search(r'<article[^>]*>(.*?)</article>',legacy,re.S|re.I)
@@ -22,6 +23,8 @@ for p in records:
     description=html.escape(summary,quote=True)
     source_link=re.search(r'<a href="(https://jalasamudrainstitute.wordpress.com/[^\"]+)">Lihat publikasi asli',legacy)
     source_note=('<p class="source-link"><a href="'+html.escape(source_link.group(1),quote=True)+'">Lihat publikasi asli di WordPress</a></p>') if source_link else ''
+    if not source_link: raise ValueError('Missing original WordPress URL: '+p['slug'])
+    source_map.append({'original_wordpress_url':source_link.group(1),'v2_path':p['url'],'slug':p['slug']})
     page='<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><meta name="description" content="'+description+'"><title>'+title+' — JSI</title><link rel="stylesheet" href="../../assets/site.css"><link rel="stylesheet" href="../../assets/article.css"></head><body><header class="masthead"><a href="../../">Jala Samudra Institute</a></header><nav class="nav"><div class="wrap"><a href="../../">Home</a><a href="../../publications/">Publications</a><a href="../../research/">Research</a><a href="../../about/">About</a><a href="../../contact/">Contact</a></div></nav><main id="main-content" class="reading"><header class="article-heading"><p class="eyebrow">Publikasi JSI</p><h1>'+title+'</h1><p class="article-meta"><time datetime="'+html.escape(p.get('published',''))+'">'+html.escape(p.get('published',''))+'</time></p></header><article class="article-body">'+original_body+'</article><div class="article-end">'+source_note+'<p><a href="../../publications/">← Kembali ke arsip publikasi</a></p></div></main><footer><div class="wrap"><span>Jala Samudra Institute</span><a href="mailto:jalasamudrainstitute@gmail.com">Hubungi kami</a></div></footer></body></html>'
     target=out/'articles'/p['slug']/'index.html'
     target.parent.mkdir(parents=True,exist_ok=True)
@@ -33,6 +36,9 @@ for p in records:
         raise ValueError('Article body parity failed for '+p['slug'])
     if '<h1>'+title+'</h1>' not in generated or '<time datetime="'+html.escape(p.get('published',''))+'">' not in generated:
         raise ValueError('Article metadata mismatch for '+p['slug'])
+
+# Preserve explicit historical URL mapping for launch planning; do not redirect WordPress yet.
+(out/'data'/'source-url-map.json').write_text(json.dumps({'mappings':source_map},ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
 
 # Consistent keyboard skip navigation across the complete static preview.
 for page_file in out.rglob('index.html'):

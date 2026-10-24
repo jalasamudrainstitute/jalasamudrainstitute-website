@@ -35,6 +35,17 @@ for page in PAGES:
         if 'aria-label="Navigasi utama"' not in page_text: errors.append(f'{page}: main navigation lacks accessible label')
         if '<h1' not in page_text: errors.append(f'{page}: missing primary heading')
     if page_text.count('class="skip-link"')!=1: errors.append(f'{page}: expected one keyboard skip link')
+    if page.is_relative_to(ROOT/'publications'):
+        from html.parser import HTMLParser as _HTMLParser
+        class _Archive(_HTMLParser):
+            def __init__(self): super().__init__(); self.urls=[]
+            def handle_starttag(self,tag,attrs):
+                if tag=='a':
+                    href=dict(attrs).get('href','')
+                    if href.startswith('/articles/'): self.urls.append(href)
+        archive=_Archive();archive.feed(page_text)
+        catalog=json.loads((ROOT/'data/publications.json').read_text(encoding='utf-8'))['publications']
+        if sorted(archive.urls)!=sorted(p['url'] for p in catalog): errors.append('static archive links differ from publication catalog')
     if '<html lang="id"' not in page.read_text(encoding='utf-8'): errors.append(f'{page}: missing Indonesian language declaration')
     if 'name="viewport"' not in page.read_text(encoding='utf-8'): errors.append(f'{page}: missing mobile viewport')
     if page.is_relative_to(ROOT/'articles') and len(page.read_text(encoding='utf-8')) < 500: errors.append(f'{page}: article unexpectedly short')

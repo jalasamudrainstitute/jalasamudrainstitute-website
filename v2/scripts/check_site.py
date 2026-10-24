@@ -6,7 +6,9 @@ import json
 import sys
 from urllib.parse import unquote, urlsplit
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2] / 'v2-dist'
+if not ROOT.is_dir():
+    raise SystemExit('Run python3 v2/scripts/build.py before checking the generated site')
 PAGES = sorted(ROOT.rglob('index.html'))
 class Parser(HTMLParser):
     def __init__(self):
@@ -28,7 +30,7 @@ for page in PAGES:
     if not parser.title: errors.append(f'{page}: missing title')
     if not parser.robots: errors.append(f'{page}: prototype must remain noindex')
     for image in parser.images:
-        if not image.get('alt'): errors.append(f'{page}: image missing alt')
+        if 'alt' not in image: errors.append(f'{page}: image missing alt attribute')
     for link in parser.links:
         parsed=urlsplit(link)
         if parsed.scheme in ('http','https','mailto','tel','data') or link.startswith('//'): continue
@@ -47,6 +49,7 @@ urls=[p['url'] for p in publications]
 if len(urls)!=len(set(urls)): errors.append('duplicate publication URLs')
 for p in publications:
     if not p['url'].startswith('/articles/'): errors.append(f"unexpected canonical article URL: {p['url']}")
+    if not (ROOT / 'articles' / p['slug'] / 'index.html').is_file(): errors.append(f"missing generated article: {p['slug']}")
 print(f'Checked {len(PAGES)} pages and {len(publications)} publication records.')
 if errors:
     print('\n'.join('FAIL: '+e for e in errors));sys.exit(1)

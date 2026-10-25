@@ -101,7 +101,8 @@ for html_file in out.rglob('index.html'):
     favicon_tags=('<link rel="icon" href="/favicon.ico" sizes="any">'
                   '<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">'
                   '<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png">')
-    page_html=page_html.replace('</head>',favicon_tags+'</head>',1)
+    if (out/'favicon.ico').exists() and (out/'favicon-48.png').exists() and (out/'favicon-96.png').exists():
+        page_html=page_html.replace('</head>',favicon_tags+'</head>',1)
     page_html=page_html.replace('</head>','<link rel="canonical" href="'+html.escape(canonical,quote=True)+'"></head>',1)
     # Social preview metadata is also useful to AI link readers and sharing crawlers.
     title_match=re.search(r'<title>(.*?)</title>',page_html,re.S|re.I)

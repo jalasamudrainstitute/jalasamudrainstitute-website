@@ -160,4 +160,23 @@ ET.ElementTree(rss).write(out/'feed.xml',encoding='utf-8',xml_declaration=True)
 
 # Private preview only: block indexing until editorial and deployment sign-off.
 (out/'robots.txt').write_text(('User-agent: *\nAllow: /\nSitemap: '+site_origin+'/sitemap.xml\n') if production else 'User-agent: *\nDisallow: /\n',encoding='utf-8')
+# Provide a short, machine-readable discovery guide without replacing the actual HTML.
+if production:
+    llms_lines=[
+        '# Jala Samudra Institute',
+        '',
+        '> Independent Indonesian research, analysis and ideas across capital markets, law, geopolitics and society.',
+        '',
+        'Website: '+site_origin+'/',
+        'Publication archive: '+site_origin+'/publications/',
+        'Sitemap: '+site_origin+'/sitemap.xml',
+        'RSS: '+site_origin+'/feed.xml',
+        '',
+        '## Publications',
+    ]
+    for p in sorted(records,key=lambda p:p.get('published',''),reverse=True):
+        llms_lines.append('- ['+p['title'].replace(']','')+']('+site_origin+p['url']+')')
+    llms_lines.extend(['','## Editorial note','Read each original article for its full argument, evidence and references. This guide is not a substitute for the articles.',''])
+    (out/'llms.txt').write_text('\\n'.join(llms_lines),encoding='utf-8')
+
 print('Generated',len(records),'articles')

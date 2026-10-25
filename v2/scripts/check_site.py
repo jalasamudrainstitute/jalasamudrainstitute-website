@@ -38,6 +38,17 @@ for page in PAGES:
         if 'aria-label="Navigasi utama"' not in page_text: errors.append(f'{page}: main navigation lacks accessible label')
         if '<h1' not in page_text: errors.append(f'{page}: missing primary heading')
     if page_text.count('class="skip-link"')!=1: errors.append(f'{page}: expected one keyboard skip link')
+    if production:
+        expected_route='/' if page==ROOT/'index.html' else '/'+page.parent.relative_to(ROOT).as_posix()+'/'
+        expected_canonical=site_origin+expected_route
+        if '<link rel="canonical" href="'+expected_canonical+'">' not in page_text:
+            errors.append(f'{page}: missing or incorrect canonical URL')
+        if 'application/ld+json' not in page_text:
+            errors.append(f'{page}: missing JSON-LD structured data')
+    if page==ROOT/'index.html':
+        for pub in json.loads((ROOT/'data/publications.json').read_text(encoding='utf-8'))['publications']:
+            if 'href="'+pub['url']+'"' not in page_text:
+                errors.append(f'homepage missing static article link: {pub["slug"]}')
     if page.is_relative_to(ROOT/'publications'):
         from html.parser import HTMLParser as _HTMLParser
         class _Archive(_HTMLParser):

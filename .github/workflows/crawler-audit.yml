@@ -1,0 +1,45 @@
+name: Public crawler accessibility audit
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 2 * * 1'
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check public HTTP, metadata and crawler user agents
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import urllib.request, urllib.error, re, sys
+          base='https://jalasamudrainstitute.pages.dev'
+          article=base+'/articles/di-balik-layar-bursa-perdagangan-terkoordinasi-jejak-rekening-dan-ancaman-standalone-market-msci-terhadap-bursa-efek-indonesia/'
+          checks=[(base+'/robots.txt','robots'),(base+'/sitemap.xml','sitemap'),(base+'/publications/','archive'),(article,'article')]
+          agents=['Mozilla/5.0 (compatible; JSI-Audit/1.0)','Googlebot','bingbot','ClaudeBot','GPTBot']
+          failed=[]
+          for url,kind in checks:
+              for agent in (agents if kind=='article' else agents[:1]):
+                  try:
+                      req=urllib.request.Request(url,headers={'User-Agent':agent})
+                      with urllib.request.urlopen(req,timeout=25) as resp:
+                          body=resp.read().decode('utf-8','replace')
+                          status=resp.status
+                          print(f'{kind} {agent}: HTTP {status}; bytes={len(body)}')
+                          if status!=200: failed.append(f'{kind} {agent}: HTTP {status}')
+                          if kind=='article':
+                              for marker in ['<h1','rel="canonical"','application/ld+json','name="description"']:
+                                  if marker not in body: failed.append(f'{kind}: missing {marker}')
+                              if re.search(r'<meta[^>]+name="robots"[^>]+noindex',body,re.I): failed.append('article noindex')
+                          elif kind=='robots' and 'Disallow: /' in body: failed.append('robots disallows root')
+                          elif kind=='sitemap' and article not in body: failed.append('sitemap missing article')
+                          elif kind=='archive' and '/articles/' not in body: failed.append('archive missing article links')
+                  except Exception as exc:
+                      failed.append(f'{kind} {agent}: {exc}')
+          if failed:
+              print('AUDIT FAILURES:')
+              for item in failed: print('-',item)
+              sys.exit(1)
+          print('PASS: public accessibility and core crawler metadata')
+          PY

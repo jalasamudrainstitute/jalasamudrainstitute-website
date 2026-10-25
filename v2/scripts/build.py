@@ -126,6 +126,11 @@ for html_file in out.rglob('index.html'):
             structured={'@context':'https://schema.org','@type':'Article','headline':pub['title'],'datePublished':pub['published'],'inLanguage':'id-ID','mainEntityOfPage':canonical,'url':canonical,'publisher':{'@type':'Organization','name':'Jala Samudra Institute','url':site_origin+'/'}}
         else:
             structured={'@context':'https://schema.org','@type':'WebPage','url':canonical,'inLanguage':'id-ID','isPartOf':{'@type':'WebSite','name':'Jala Samudra Institute','url':site_origin+'/'}}
+        if route.startswith('/articles/'):
+            structured['isAccessibleForFree']=True
+            structured['description']=html.unescape(desc_match.group(1)) if desc_match else ''
+            structured['author']={'@type':'Organization','name':'Jala Samudra Institute'}
+            structured['isPartOf']={'@type':'WebSite','name':'Jala Samudra Institute','url':site_origin+'/'}
         page_html=page_html.replace('</head>','<script type="application/ld+json">'+json.dumps(structured,ensure_ascii=False).replace('<','\\u003c')+'</script></head>',1)
     html_file.write_text(page_html,encoding='utf-8')
 

@@ -45,6 +45,27 @@ for page in PAGES:
             errors.append(f'{page}: missing or incorrect canonical URL')
         if 'application/ld+json' not in page_text:
             errors.append(f'{page}: missing JSON-LD structured data')
+        if page.is_relative_to(ROOT/'articles'):
+            if 'property="og:title"' not in page_text or 'property="og:url"' not in page_text:
+                errors.append(f'{page}: missing Open Graph article metadata')
+            if 'name="twitter:card"' not in page_text:
+                errors.append(f'{page}: missing social preview metadata')
+            from html.parser import HTMLParser as _HTMLParser
+            class _JSONLD(_HTMLParser):
+                def __init__(self): super().__init__(); self.active=False; self.data=[]
+                def handle_starttag(self,tag,attrs):
+                    if tag=='script' and dict(attrs).get('type')=='application/ld+json': self.active=True
+                def handle_data(self,data):
+                    if self.active: self.data.append(data)
+                def handle_endtag(self,tag):
+                    if tag=='script': self.active=False
+            ld=_JSONLD();ld.feed(page_text)
+            try:
+                article_schema=json.loads(''.join(ld.data))
+                for field in ('headline','datePublished','publisher','author','description','mainEntityOfPage','isAccessibleForFree'):
+                    if field not in article_schema: errors.append(f'{page}: JSON-LD missing {field}')
+            except (ValueError,TypeError):
+                errors.append(f'{page}: invalid JSON-LD article metadata')
     if page==ROOT/'index.html':
         for pub in json.loads((ROOT/'data/publications.json').read_text(encoding='utf-8'))['publications']:
             if 'href="'+pub['url']+'"' not in page_text:

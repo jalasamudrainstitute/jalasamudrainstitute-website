@@ -62,6 +62,14 @@ for p in sorted(records,key=lambda p:p.get('published',''),reverse=True):
 archive_html=archive_html.replace('<p>Memuat arsip publikasi…</p>',''.join(static_cards))
 archive_file.write_text(archive_html,encoding='utf-8')
 
+# Render homepage publication links into the initial HTML for crawlers and readers.
+home_file=out/'index.html'
+home_html=home_file.read_text(encoding='utf-8')
+if '<p>Memuat arsip publikasi…</p>' not in home_html:
+    raise ValueError('Homepage publication placeholder missing')
+home_html=home_html.replace('<p>Memuat arsip publikasi…</p>',''.join(static_cards))
+home_file.write_text(home_html,encoding='utf-8')
+
 # Consistent keyboard skip navigation across the complete static preview.
 for page_file in out.rglob('index.html'):
     page_html=page_file.read_text(encoding='utf-8')
@@ -82,6 +90,25 @@ for page_file in out.rglob('index.html'):
 from xml.etree import ElementTree as ET
 production=os.environ.get('CF_PAGES_PROJECT_NAME')=='jalasamudrainstitute' or os.environ.get('JSI_PRODUCTION')=='1'
 site_origin='https://jalasamudrainstitute.pages.dev' if production else 'https://jsi-v2-review.pages.dev'
+# Add stable canonical URLs and machine-readable page metadata.
+for html_file in out.rglob('index.html'):
+    relative=html_file.relative_to(out)
+    route='/' if str(relative)=='index.html' else '/'+relative.parent.as_posix()+'/'
+    page_html=html_file.read_text(encoding='utf-8')
+    canonical=site_origin+route
+    page_html=page_html.replace('</head>','<link rel="canonical" href="'+html.escape(canonical,quote=True)+'"></head>',1)
+    if production:
+        if route=='/':
+            structured={'@context':'https://schema.org','@type':'WebSite','name':'Jala Samudra Institute','url':canonical,'inLanguage':'id-ID'}
+        elif route.startswith('/articles/'):
+            pub=next((p for p in records if p['url']==route),None)
+            if pub is None: raise ValueError('Missing article record: '+route)
+            structured={'@context':'https://schema.org','@type':'Article','headline':pub['title'],'datePublished':pub['published'],'inLanguage':'id-ID','mainEntityOfPage':canonical,'url':canonical,'publisher':{'@type':'Organization','name':'Jala Samudra Institute','url':site_origin+'/'}}
+        else:
+            structured={'@context':'https://schema.org','@type':'WebPage','url':canonical,'inLanguage':'id-ID','isPartOf':{'@type':'WebSite','name':'Jala Samudra Institute','url':site_origin+'/'}}
+        page_html=page_html.replace('</head>','<script type="application/ld+json">'+json.dumps(structured,ensure_ascii=False).replace('<','\\u003c')+'</script></head>',1)
+    html_file.write_text(page_html,encoding='utf-8')
+
 if production:
     for html_file in out.rglob('index.html'):
         page_html=html_file.read_text(encoding='utf-8')

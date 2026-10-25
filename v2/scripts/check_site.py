@@ -162,6 +162,23 @@ try:
         errors.append('RSS feed does not match publication catalog')
 except (OSError, ET.ParseError):
     pass
+# Validate the optional AI discovery guide against the canonical publication catalog.
+llms_file=ROOT/'llms.txt'
+if production:
+    if not llms_file.is_file():
+        errors.append('production llms.txt missing')
+    else:
+        llms_text=llms_file.read_text(encoding='utf-8')
+        if site_origin+'/publications/' not in llms_text:
+            errors.append('llms.txt missing archive URL')
+        if site_origin+'/sitemap.xml' not in llms_text:
+            errors.append('llms.txt missing sitemap URL')
+        for pub in publications:
+            if site_origin+pub['url'] not in llms_text:
+                errors.append('llms.txt missing canonical article: '+pub['slug'])
+else:
+    if llms_file.exists():
+        errors.append('private preview must not publish llms.txt')
 print(f'Checked {len(PAGES)} pages and {len(publications)} publication records.')
 if errors:
     print('\n'.join('FAIL: '+e for e in errors));sys.exit(1)

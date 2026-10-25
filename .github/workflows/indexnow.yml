@@ -1,0 +1,46 @@
+name: Notify IndexNow after production publication
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'v2/**'
+      - 'articles/**'
+      - '.github/workflows/indexnow.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wait for Cloudflare Pages production and submit changed URLs
+        env:
+          INDEXNOW_KEY: cb1569b0889cd5634da37c02a12b4353
+        run: |
+          python3 - <<'PY'
+          import json,os,time,urllib.request,urllib.error,sys
+          origin="https://jalasamudrainstitute.pages.dev"
+          key=os.environ["INDEXNOW_KEY"]
+          key_url=f"{origin}/{key}.txt"
+          # Never announce a preview build or a missing/unverified ownership key.
+          for attempt in range(24):
+              try:
+                  with urllib.request.urlopen(key_url,timeout=15) as response:
+                      if response.read().decode().strip()==key: break
+              except Exception as exc:
+                  print("Waiting for production verification key:",str(exc))
+              time.sleep(15)
+          else: sys.exit("IndexNow key unavailable on production; no submission made")
+          with open("v2/data/publications.json",encoding="utf-8") as f:
+              publications=json.load(f)["publications"]
+          urls=[origin+route for route in ["/","/publications/","/research/","/about/","/contact/"]+[p["url"] for p in publications]]
+          payload=json.dumps({"host":"jalasamudrainstitute.pages.dev","key":key,"keyLocation":key_url,"urlList":urls}).encode()
+          request=urllib.request.Request("https://api.indexnow.org/indexnow",data=payload,headers={"Content-Type":"application/json; charset=utf-8","User-Agent":"JSI-IndexNow/1.0"},method="POST")
+          try:
+              with urllib.request.urlopen(request,timeout=30) as response:
+                  print("IndexNow HTTP status:",response.status,"URL count:",len(urls))
+          except urllib.error.HTTPError as exc:
+              print("IndexNow HTTP error:",exc.code,exc.read().decode(errors="replace")[:1000])
+              raise
+          PY

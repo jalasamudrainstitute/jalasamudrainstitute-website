@@ -98,6 +98,25 @@ for html_file in out.rglob('index.html'):
     page_html=html_file.read_text(encoding='utf-8')
     canonical=site_origin+route
     page_html=page_html.replace('</head>','<link rel="canonical" href="'+html.escape(canonical,quote=True)+'"></head>',1)
+    # Social preview metadata is also useful to AI link readers and sharing crawlers.
+    title_match=re.search(r'<title>(.*?)</title>',page_html,re.S|re.I)
+    desc_match=re.search(r'<meta name="description" content="([^"]*)"',page_html,re.I)
+    if title_match:
+        social_title=title_match.group(1)
+        social_desc=desc_match.group(1) if desc_match else ''
+        social_type='article' if route.startswith('/articles/') else 'website'
+        social_tags=(
+            '<meta property="og:type" content="'+social_type+'">'
+            '<meta property="og:site_name" content="Jala Samudra Institute">'
+            '<meta property="og:title" content="'+social_title+'">'
+            '<meta property="og:description" content="'+social_desc+'">'
+            '<meta property="og:url" content="'+html.escape(canonical,quote=True)+'">'
+            '<meta name="twitter:card" content="summary">'
+            '<meta name="twitter:title" content="'+social_title+'">'
+            '<meta name="twitter:description" content="'+social_desc+'">'
+        )
+        page_html=page_html.replace('</head>',social_tags+'</head>',1)
+
     if production:
         if route=='/':
             structured={'@context':'https://schema.org','@type':'WebSite','name':'Jala Samudra Institute','url':canonical,'inLanguage':'id-ID'}

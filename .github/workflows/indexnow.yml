@@ -26,10 +26,11 @@ jobs:
           # Never announce a preview build or a missing/unverified ownership key.
           for attempt in range(24):
               try:
-                  with urllib.request.urlopen(key_url,timeout=15) as response:
+                  req=urllib.request.Request(key_url,headers={"User-Agent":"Mozilla/5.0 (compatible; JSI-IndexNow/1.0; +https://jalasamudrainstitute.pages.dev/)"})
+              with urllib.request.urlopen(req,timeout=15) as response:
                       if response.read().decode().strip()==key: break
               except Exception as exc:
-                  print("Waiting for production verification key:",str(exc))
+                  print("Waiting for production verification key:",str(exc),flush=True)
               time.sleep(15)
           else: sys.exit("IndexNow key unavailable on production; no submission made")
           with open("v2/data/publications.json",encoding="utf-8") as f:

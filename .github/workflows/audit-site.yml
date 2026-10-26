@@ -1,4 +1,4 @@
-name: Audit static site integrity
+name: Audit production static site integrity
 on:
   push:
     branches: [main]
@@ -13,4 +13,21 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: python scripts/audit_site.py
+      - name: Build production output
+        run: JSI_PRODUCTION=1 python3 v2/scripts/build.py
+      - name: Validate production output
+        run: JSI_PRODUCTION=1 python3 v2/scripts/check_site.py
+      - name: Validate generated sitemap against publication catalog
+        run: |
+          python3 - <<'PY'
+          import json,xml.etree.ElementTree as ET
+          from pathlib import Path
+          origin='https://jalasamudrainstitute.pages.dev'
+          publications=json.loads(Path('v2/data/publications.json').read_text())['publications']
+          expected={origin+p for p in ['/','/publications/','/research/','/about/','/contact/']+[x['url'] for x in publications]}
+          root=ET.parse('v2-dist/sitemap.xml').getroot()
+          actual={e.text for e in root.findall('.//{http://www.sitemaps.org/schemas/sitemap/0.9}loc')}
+          assert actual==expected, f'Missing: {expected-actual}; unexpected: {actual-expected}'
+          assert 'Sitemap: '+origin+'/sitemap.xml' in Path('v2-dist/robots.txt').read_text()
+          print('PASS:',len(actual),'canonical sitemap URLs')
+          PY

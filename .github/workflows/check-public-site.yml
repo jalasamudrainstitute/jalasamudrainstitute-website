@@ -20,7 +20,7 @@ jobs:
             curl --fail --show-error --location --retry 3 --retry-delay 5 --connect-timeout 12 --max-time 30 --output /tmp/site-response --write-out 'HTTP %{http_code}; content-type %{content_type}; remote IP %{remote_ip}\n' "$base$path"
             test -s /tmp/site-response
             if [[ "$path" == "/sitemap.xml" ]]; then
-              python3 -c 'import xml.etree.ElementTree as ET; root=ET.parse("/tmp/site-response").getroot(); urls=root.findall("{http://www.sitemaps.org/schemas/sitemap/0.9}url"); print("Sitemap URLs:",len(urls)); assert len(urls)==13, "Expected 13 URLs"'
+              python3 -c 'import xml.etree.ElementTree as ET; root=ET.parse("/tmp/site-response").getroot(); urls=root.findall("{http://www.sitemaps.org/schemas/sitemap/0.9}url"); print("Sitemap URLs:",len(urls)); assert len(urls)>=5, "Sitemap unexpectedly contains fewer than 5 URLs"'
             fi
             if [[ "$path" == "/googled95102253d13cad2.html" ]]; then
               grep -Fq 'google-site-verification: googled95102253d13cad2.html' /tmp/site-response

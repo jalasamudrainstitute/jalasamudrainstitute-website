@@ -20,7 +20,7 @@ jobs:
           agents=['Mozilla/5.0 (compatible; JSI-Audit/1.0)','Googlebot','bingbot','ClaudeBot','GPTBot']
           failed=[]
           for url,kind in checks:
-              for agent in (agents if kind=='article' else agents[:1]):
+              for agent in (agents if kind in ('article','sitemap','robots') else agents[:1]):
                   try:
                       req=urllib.request.Request(url,headers={'User-Agent':agent})
                       with urllib.request.urlopen(req,timeout=25) as resp:

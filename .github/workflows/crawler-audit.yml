@@ -4,7 +4,7 @@ on:
     branches: [main]
   workflow_dispatch:
   schedule:
-    - cron: '17 2 * * 1'
+    - cron: '17 0 * * *'
 permissions:
   contents: read
 jobs:
@@ -44,4 +44,70 @@ jobs:
               for item in failed: print('-',item)
               sys.exit(1)
           print('PASS: public accessibility and core crawler metadata')
+          PY
+      - name: Audit live canonical pages, sitemap and favicon assets
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, re, sys, urllib.request, xml.etree.ElementTree as ET
+          from html.parser import HTMLParser
+          from urllib.parse import urlparse
+          base='https://jalasamudrainstitute.pages.dev'
+          failures=[]
+          def get(path):
+              req=urllib.request.Request(base+path,headers={'User-Agent':'Mozilla/5.0 (compatible; JSI-Production-Audit/1.0)'})
+              with urllib.request.urlopen(req,timeout=30) as response:
+                  body=response.read()
+                  print(path, 'HTTP',response.status,'bytes',len(body),'content-type',response.headers.get('Content-Type'))
+                  return response.status,body
+          class Meta(HTMLParser):
+              def __init__(self):
+                  super().__init__();self.canonical=[];self.meta={};self.title=False;self.jsonld=0
+              def handle_starttag(self,tag,attrs):
+                  a=dict(attrs)
+                  if tag=='link' and a.get('rel')=='canonical':self.canonical.append(a.get('href'))
+                  if tag=='meta':
+                      if a.get('name'):self.meta[a['name']]=a.get('content','')
+                      if a.get('property'):self.meta[a['property']]=a.get('content','')
+                  if tag=='title':self.title=True
+                  if tag=='script' and a.get('type')=='application/ld+json':self.jsonld+=1
+          try:
+              _,robots=get('/robots.txt')
+              rules=robots.decode('utf-8','replace')
+              if 'Sitemap: '+base+'/sitemap.xml' not in rules:failures.append('robots.txt missing canonical sitemap declaration')
+              if 'Disallow: /' in rules:failures.append('robots.txt blocks root')
+              _,xml=get('/sitemap.xml')
+              root=ET.fromstring(xml)
+              ns='{http://www.sitemaps.org/schemas/sitemap/0.9}'
+              if root.tag!=ns+'urlset':failures.append('sitemap namespace or root incorrect')
+              urls=[n.text for n in root.findall(ns+'url/'+ns+'loc')]
+              if len(urls)!=15 or len(set(urls))!=15:failures.append('expected 15 unique sitemap URLs, found '+str(len(urls)))
+              if base+'/' not in urls:failures.append('homepage missing from sitemap')
+              if not any('/articles/di-balik-layar-bursa-' in x for x in urls):failures.append('MSCI article missing from sitemap')
+              for url in urls:
+                  if urlparse(url).netloc!='jalasamudrainstitute.pages.dev':
+                      failures.append('off-domain sitemap URL '+url);continue
+                  path=url[len(base):]
+                  try:
+                      _,body=get(path)
+                      page=Meta();page.feed(body.decode('utf-8','replace'))
+                      if page.canonical!=[url]:failures.append(path+' incorrect canonical '+repr(page.canonical))
+                      if page.meta.get('og:site_name')!='Jala Samudra Institute':failures.append(path+' missing site name')
+                      if not page.meta.get('description'):failures.append(path+' missing description')
+                      if 'noindex' in page.meta.get('robots','').lower():failures.append(path+' has noindex')
+                      if not page.title:failures.append(path+' missing title')
+                      if page.jsonld<1:failures.append(path+' missing JSON-LD')
+                  except Exception as exc:failures.append(path+' '+repr(exc))
+              for path,signature in [('/favicon.ico',None),('/favicon-48.png',b'\x89PNG\r\n\x1a\n'),('/favicon-96.png',b'\x89PNG\r\n\x1a\n')]:
+                  try:
+                      _,body=get(path)
+                      if len(body)<100:failures.append(path+' unexpectedly small')
+                      if signature and not body.startswith(signature):failures.append(path+' invalid PNG signature')
+                  except Exception as exc:failures.append(path+' '+repr(exc))
+          except Exception as exc:failures.append('sitemap/robots audit '+repr(exc))
+          if failures:
+              print('FAILURES:')
+              for item in failures:print('-',item)
+              sys.exit(1)
+          print('PASS: 15 live canonical pages, SEO metadata, sitemap, robots and 3 favicon assets')
           PY

@@ -91,6 +91,13 @@ for page_file in out.rglob('index.html'):
 from xml.etree import ElementTree as ET
 production=os.environ.get('CF_PAGES_PROJECT_NAME')=='jalasamudrainstitute' or os.environ.get('JSI_PRODUCTION')=='1'
 site_origin='https://jalasamudrainstitute.pages.dev' if production else 'https://jsi-v2-review.pages.dev'
+# Publish the existing Search Console ownership verification file in production.
+# The source file lives at the repository root, outside the v2 copytree.
+if production:
+    verification=root/'googled95102253d13cad2.html'
+    if not verification.is_file():
+        raise FileNotFoundError('Missing Search Console verification file: '+str(verification))
+    shutil.copy2(verification,out/verification.name)
 # Add stable canonical URLs and machine-readable page metadata.
 for html_file in out.rglob('index.html'):
     relative=html_file.relative_to(out)

@@ -2,7 +2,7 @@ name: Check public site and sitemap
 on:
   workflow_dispatch:
   schedule:
-    - cron: '17 1 * * *'
+    - cron: '43 22 * * *'
 permissions:
   contents: read
 jobs:
